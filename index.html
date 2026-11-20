@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HEXDEFENSE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game"></canvas>
+
+    <!-- top bar -->
+    <div id="topbar" class="hud hidden">
+      <div class="stat"><span class="stat-label">GOLD</span><span id="gold" class="stat-value gold">0</span></div>
+      <button id="btn-money" class="act money" title="Add gold (+100 per click)">+100g</button>
+      <div class="stat"><span class="stat-label">CORE</span><span id="lives" class="stat-value lives">20</span></div>
+      <div class="stat"><span class="stat-label">WAVE</span><span id="wave" class="stat-value">0/20</span></div>
+      <div id="waveinfo"></div>
+      <div class="top-actions">
+        <button id="btn-speed1" class="act" title="Speed ×1">▶</button>
+        <button id="btn-speed2" class="act" title="Speed ×2">▶▶</button>
+        <button id="btn-speed3" class="act" title="Speed ×3">▶▶▶</button>
+        <button id="btn-pause" class="act" title="Pause (Space)">⏸</button>
+        <button id="btn-mute" class="act" title="Mute (M)">♪</button>
+      </div>
+    </div>
+
+    <!-- build bar -->
+    <div id="buildbar" class="hud hidden"></div>
+
+    <!-- wave control -->
+    <div id="wavebar" class="hud hidden">
+      <div id="preview"></div>
+      <button id="btn-startwave" class="primary">START WAVE 1</button>
+      <label id="autolabel"><input type="checkbox" id="auto" /> auto</label>
+    </div>
+
+    <!-- selected tower panel -->
+    <div id="selectpanel" class="hud hidden">
+      <div class="sp-head"><span id="sp-name"></span><button id="sp-close" class="x">×</button></div>
+      <div id="sp-stats"></div>
+      <div class="sp-row">
+        <button id="sp-target" class="act wide"></button>
+      </div>
+      <div id="sp-rotrow" class="sp-row hidden">
+        <button id="sp-rot" class="wide"></button>
+      </div>
+      <div class="sp-row mods">
+        <button id="sp-pow" class="act"></button>
+        <button id="sp-rate" class="act"></button>
+        <button id="sp-rng" class="act"></button>
+      </div>
+      <div class="sp-row">
+        <button id="sp-upgrade" class="primary"></button>
+        <button id="sp-sell" class="danger"></button>
+      </div>
+    </div>
+
+    <!-- overlays -->
+    <div id="overlay" class="overlay">
+      <div id="ov-menu">
+        <div class="title">HEX<span>DEFENSE</span></div>
+        <div class="subtitle">NEON HEXAGONAL MAZE DEFENCE</div>
+        <div class="menu-actions">
+          <button id="btn-start" class="primary big">START</button>
+        </div>
+        <div id="bestline"></div>
+        <div class="help">
+          <div>1–5 / click — pick tower · click grid — build · click tower — upgrade / sell</div>
+          <div>Esc — cancel · Space — pause · M — mute · N — start wave</div>
+          <div>Build towers to maze enemies into kill zones. Flying wraiths ignore the maze.</div>
+          <div>Every tower also takes separate POWER / SPEED / RANGE modules. The LASER beam can be locked to an angle — click the map to aim it.</div>
+        </div>
+      </div>
+      <div id="ov-end" class="hidden">
+        <div id="end-title" class="title"></div>
+        <div id="end-stats" class="end-stats"></div>
+        <div class="menu-actions">
+          <button id="btn-continue" class="primary big hidden">CONTINUE — ENDLESS</button>
+          <button id="btn-again" class="big">PLAY AGAIN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

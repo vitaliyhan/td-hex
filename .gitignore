@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Tooling / plugin state
+.zcode/
+.v2c/
+.video_agent/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Env
+.env
+.env.local
