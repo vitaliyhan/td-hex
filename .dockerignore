@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.gitignore
+.zcode
+.v2c
+.video_agent
+tests
+*.log
+.env
+.env.local
