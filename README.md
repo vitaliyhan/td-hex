@@ -1,6 +1,6 @@
 # HEXDEFENSE
 
-Neon hexagonal maze tower defence. Vanilla TypeScript + Canvas 2D, no runtime
+Matrix-style (green-on-black, code rain) hexagonal maze tower defence. Vanilla TypeScript + Canvas 2D, no runtime
 dependencies. Vite for dev/build, vitest for the core math.
 
 ```
@@ -18,10 +18,11 @@ npm run test     # hex/path unit tests
 - Towers: **LANCE** (beam, single target), **CRYO** (slow aura), **MORTAR**
   (splash, cannot hit flyers), **ARC** (chain lightning), **LASER** (piercing
   beam that crosses the whole map and hits everything in its line; rotation
-  auto-tracks or can be LOCKED — click the map to aim it).
-- Every tower takes **separate module upgrades** — POWER, SPEED and RANGE ×3
-  tiers each — on top of the three main levels. Sell always returns 70% of
-  everything invested.
+  auto-tracks or can be LOCKED — click the map to aim it), **SENTINEL**
+  (long-range sniper) and **FLAK** (rapid burst hitting several targets).
+- Every tower takes **separate module upgrades** — POWER, SPEED, RANGE and
+  GUNS (extra barrels firing at extra targets) — all uncapped, buy as many
+  tiers as you can afford. Sell always returns 70% of everything invested.
 - The outer hex ring is a boundary wall: it defines the arena edges, towers
   can't be built on it and ground enemies can't cross it. Spawn and core are
   the two gates.

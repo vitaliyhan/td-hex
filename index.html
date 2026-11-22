@@ -15,7 +15,7 @@
     <!-- top bar -->
     <div id="topbar" class="hud hidden">
       <div class="stat"><span class="stat-label">GOLD</span><span id="gold" class="stat-value gold">0</span></div>
-      <button id="btn-money" class="act money" title="Add gold (+100 per click)">+100g</button>
+      <button id="btn-money" class="act money" title="Add gold (amount grows each click)">+100g</button>
       <div class="stat"><span class="stat-label">CORE</span><span id="lives" class="stat-value lives">20</span></div>
       <div class="stat"><span class="stat-label">WAVE</span><span id="wave" class="stat-value">0/20</span></div>
       <div id="waveinfo"></div>
@@ -52,6 +52,7 @@
         <button id="sp-pow" class="act"></button>
         <button id="sp-rate" class="act"></button>
         <button id="sp-rng" class="act"></button>
+        <button id="sp-gun" class="act"></button>
       </div>
       <div class="sp-row">
         <button id="sp-upgrade" class="primary"></button>
@@ -69,10 +70,10 @@
         </div>
         <div id="bestline"></div>
         <div class="help">
-          <div>1–5 / click — pick tower · click grid — build · click tower — upgrade / sell</div>
+          <div>1–7 / click — pick tower · click grid — build · click tower — upgrade / sell</div>
           <div>Esc — cancel · Space — pause · M — mute · N — start wave</div>
           <div>Build towers to maze enemies into kill zones. Flying wraiths ignore the maze.</div>
-          <div>Every tower also takes separate POWER / SPEED / RANGE modules. The LASER beam can be locked to an angle — click the map to aim it.</div>
+          <div>Every tower takes POWER / SPEED / RANGE / GUNS modules — each buys extra barrels that fire at extra targets. The LASER beam can be locked to an angle — click the map to aim it.</div>
         </div>
       </div>
       <div id="ov-end" class="hidden">

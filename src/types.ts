@@ -1,6 +1,6 @@
-export type TowerKind = "lance" | "cryo" | "mortar" | "arc" | "laser";
+export type TowerKind = "lance" | "cryo" | "mortar" | "arc" | "laser" | "sentinel" | "flak";
 
-export type ModuleCat = "pow" | "rate" | "rng";
+export type ModuleCat = "pow" | "rate" | "rng" | "gun";
 
 export type EnemyKind = "scout" | "runner" | "swarm" | "brute" | "wraith" | "boss";
 
@@ -21,6 +21,7 @@ export interface TowerLevelStats {
   slow?: number; // 0..1 slow factor (cryo)
   chain?: number; // bounce count (arc)
   chainRange?: number; // hex units (arc)
+  multi?: number; // max targets hit per shot (flak)
   width?: number; // half-width px (laser beam)
   beamDur?: number; // seconds a laser beam stays on
   cool?: number; // seconds between laser beams

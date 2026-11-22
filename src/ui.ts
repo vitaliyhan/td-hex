@@ -20,6 +20,10 @@ function glyph(kind: TowerKind, color: string): string {
       return `<svg width="30" height="30" viewBox="0 0 34 34"><circle cx="17" cy="17" r="11" fill="none" stroke="${color}" stroke-width="1.8" stroke-dasharray="14 7"/><circle cx="17" cy="17" r="6" fill="none" stroke="${color}" stroke-width="1.8" stroke-dasharray="9 5"/><circle cx="17" cy="17" r="2.4" fill="${color}"/></svg>`;
     case "laser":
       return `<svg width="30" height="30" viewBox="0 0 34 34"><polygon points="13,7 23,17 13,27" fill="${color}22" stroke="${color}" stroke-width="2"/><line x1="13" y1="17" x2="2" y2="17" stroke="${color}" stroke-width="1.4"/><line x1="23" y1="17" x2="33" y2="17" stroke="${color}" stroke-width="2.6"/></svg>`;
+    case "sentinel":
+      return `<svg width="30" height="30" viewBox="0 0 34 34"><line x1="4" y1="17" x2="30" y2="17" stroke="${color}" stroke-width="3.2"/><rect x="12" y="12" width="7" height="5" fill="none" stroke="${color}" stroke-width="1.6"/><circle cx="30" cy="17" r="2.6" fill="${color}"/></svg>`;
+    case "flak":
+      return `<svg width="30" height="30" viewBox="0 0 34 34"><g stroke="${color}" stroke-width="2.4"><line x1="10" y1="11" x2="30" y2="11"/><line x1="10" y1="17" x2="30" y2="17"/><line x1="10" y1="23" x2="30" y2="23"/></g><circle cx="10" cy="17" r="6" fill="none" stroke="${color}" stroke-width="2"/></svg>`;
   }
 }
 
@@ -45,6 +49,8 @@ export class UI {
     spPow: $("sp-pow") as HTMLButtonElement,
     spRate: $("sp-rate") as HTMLButtonElement,
     spRng: $("sp-rng") as HTMLButtonElement,
+    spGun: $("sp-gun") as HTMLButtonElement,
+    btnMoney: $("btn-money") as HTMLButtonElement,
     spUpgrade: $("sp-upgrade") as HTMLButtonElement,
     spSell: $("sp-sell") as HTMLButtonElement,
     overlay: $("overlay"),
@@ -105,7 +111,7 @@ export class UI {
     this.el.btnPause.addEventListener("click", () => g.togglePause());
     $("btn-money").addEventListener("click", () => {
       g.audio.ensure();
-      g.addMoney(100);
+      g.cheatMoney();
     });
     this.el.btnMute.addEventListener("click", () => {
       g.audio.ensure();
@@ -117,6 +123,7 @@ export class UI {
     this.el.spPow.addEventListener("click", () => g.buyModule("pow"));
     this.el.spRate.addEventListener("click", () => g.buyModule("rate"));
     this.el.spRng.addEventListener("click", () => g.buyModule("rng"));
+    this.el.spGun.addEventListener("click", () => g.buyModule("gun"));
     this.el.spUpgrade.addEventListener("click", () => g.upgradeSelected());
     this.el.spSell.addEventListener("click", () => g.sellSelected());
   }
@@ -145,6 +152,7 @@ export class UI {
     if (menu) return;
 
     this.setText("gold", this.el.gold, String(g.gold));
+    this.setText("moneybtn", this.el.btnMoney, `+${g.nextMoney}g`);
     this.setText("lives", this.el.lives, String(g.lives));
     this.el.lives.classList.toggle("low", g.lives <= 5);
     const total = g.endless ? "∞" : "20";
@@ -211,6 +219,7 @@ export class UI {
     if (st.chain !== undefined) html += row("CHAIN", `${st.chain}`, nx ? nx.chain : undefined);
     if (st.splash !== undefined) html += row("SPLASH", st.splash.toFixed(1), nx ? nx.splash?.toFixed(1) : undefined);
     if (t.def.groundOnly) html += `<span class="k">ground only</span>`;
+    if (t.gunCount > 0) html += row("GUNS", `${t.gunCount}`, t.gunCount + 1);
     if (laser) html += `<br><span class="k">beam crosses the whole map · click the map to aim it</span>`;
     this.el.spStats.innerHTML = html;
 
@@ -228,6 +237,17 @@ export class UI {
       const cost = t.moduleCost(cat);
       btn.textContent = tier === 0 ? `${cat.toUpperCase()}  ${cost}g` : `${cat.toUpperCase()} +${tier}  ${cost}g`;
       btn.disabled = g.gold < cost;
+    }
+    // guns module: extra barrels firing at extra targets (uncapped)
+    if (t.gunCount === 0) {
+      this.el.spGun.textContent = "GUNS —";
+      this.el.spGun.disabled = true;
+    } else {
+      const gcost = t.moduleCost("gun");
+      const gTier = t.moduleTier("gun");
+      this.el.spGun.textContent =
+        gTier === 0 ? `+GUN  ${gcost}g` : `GUNS +${gTier}  ${gcost}g`;
+      this.el.spGun.disabled = g.gold < gcost;
     }
 
     const cost = t.upgradeCost;

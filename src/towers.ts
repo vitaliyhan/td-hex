@@ -38,6 +38,7 @@ export class Tower {
   powT = 0;
   rateT = 0;
   rngT = 0;
+  gunT = 0;
 
   // laser runtime
   /** seconds left of the current piercing beam (>0 = firing) */
@@ -73,7 +74,7 @@ export class Tower {
     out.dmg = Math.round(b.dmg * Math.pow(1.15, this.powT));
     out.rate = Math.round(b.rate * (1 + 0.12 * this.rateT) * 100) / 100;
     if (b.range > 0) out.range = Math.round((b.range + 0.25 * this.rngT) * 100) / 100;
-    if (b.width !== undefined) out.width = b.width + 1.5 * this.rngT;
+    if (b.width !== undefined) out.width = b.width + 1.5 * this.rngT + 4 * this.gunT;
     return out;
   }
 
@@ -82,7 +83,7 @@ export class Tower {
   }
 
   moduleTier(cat: ModuleCat): number {
-    return cat === "pow" ? this.powT : cat === "rate" ? this.rateT : this.rngT;
+    return cat === "pow" ? this.powT : cat === "rate" ? this.rateT : cat === "rng" ? this.rngT : this.gunT;
   }
 
   /** module tiers are uncapped; tier n costs base * (n+1) */
@@ -93,7 +94,15 @@ export class Tower {
   addModule(cat: ModuleCat): void {
     if (cat === "pow") this.powT++;
     else if (cat === "rate") this.rateT++;
-    else this.rngT++;
+    else if (cat === "rng") this.rngT++;
+    else this.gunT++;
+  }
+
+  /** number of barrels / parallel shots; 0 for the aura tower (no guns) */
+  get gunCount(): number {
+    if (this.kind === "cryo") return 0;
+    if (this.kind === "laser") return 1 + this.gunT; // extra guns widen the beam
+    return (this.stats.multi ?? 1) + this.gunT;
   }
 
   /** lock the current facing / release it back to auto-tracking */
@@ -110,11 +119,10 @@ export class Tower {
     return Math.floor(this.invested * 0.7);
   }
 
-  private pick(ctx: TowerContext): Enemy | null {
+  private pickTargets(ctx: TowerContext, n: number): Enemy[] {
     const r = this.stats.range * this.grid.spacing;
     const r2 = r * r;
-    let best: Enemy | null = null;
-    let bestScore = -Infinity;
+    const cands: Array<{ e: Enemy; score: number }> = [];
     for (const e of ctx.enemies) {
       if (!e.alive || e.leaked) continue;
       if (e.flying && this.def.groundOnly) continue;
@@ -136,12 +144,10 @@ export class Tower {
         default:
           score = -d2;
       }
-      if (score > bestScore) {
-        bestScore = score;
-        best = e;
-      }
+      cands.push({ e, score });
     }
-    return best;
+    cands.sort((a, b) => b.score - a.score);
+    return cands.slice(0, n).map((c) => c.e);
   }
 
   /** all enemies inside the laser's line segment, within half-width */
@@ -234,9 +240,9 @@ export class Tower {
       return;
     }
 
-    const target = this.pick(ctx);
-    if (!target) return;
-    const want = Math.atan2(target.y - this.y, target.x - this.x);
+    const targets = this.pickTargets(ctx, Math.max(1, this.gunCount));
+    if (targets.length === 0) return;
+    const want = Math.atan2(targets[0].y - this.y, targets[0].x - this.x);
     let diff = want - this.angle;
     while (diff > Math.PI) diff -= Math.PI * 2;
     while (diff < -Math.PI) diff += Math.PI * 2;
@@ -250,20 +256,33 @@ export class Tower {
     const tipY = this.y + Math.sin(this.angle) * this.grid.size * 0.55;
 
     switch (this.kind) {
-      case "lance": {
-        target.damage(st.dmg);
-        ctx.fx.beam(tipX, tipY, target.x, target.y, this.def.color, 0.1, 2.5);
-        ctx.fx.burst(target.x, target.y, { count: 3, color: this.def.color, speed: 90, life: 0.25, size: 2 });
+      case "lance":
+      case "sentinel": {
+        for (const target of targets) {
+          target.damage(st.dmg);
+          ctx.fx.beam(tipX, tipY, target.x, target.y, this.def.color, 0.1, this.kind === "sentinel" ? 3.5 : 2.5);
+          ctx.fx.burst(target.x, target.y, { count: 3, color: this.def.color, speed: 90, life: 0.25, size: 2 });
+        }
+        ctx.sfx(this.kind === "sentinel" ? "laser" : "lance");
+        break;
+      }
+      case "flak": {
+        for (const target of targets) {
+          target.damage(st.dmg);
+          ctx.fx.beam(tipX, tipY, target.x, target.y, this.def.color, 0.08, 1.8);
+          ctx.fx.burst(target.x, target.y, { count: 2, color: this.def.color, speed: 80, life: 0.2, size: 1.6 });
+        }
         ctx.sfx("lance");
         break;
       }
       case "arc": {
         const chainRange = (st.chainRange ?? 2) * this.grid.spacing;
-        const hit: Enemy[] = [target];
+        // extra guns extend the chain
+        const hit: Enemy[] = [targets[0]];
         let dmg = st.dmg;
         const pts: number[] = [tipX, tipY];
-        let from = target;
-        const segs = st.chain ?? 1;
+        let from = targets[0];
+        const segs = (st.chain ?? 1) + this.gunT;
         for (let i = 0; i < segs; i++) {
           from.damage(dmg);
           pts.push(from.x, from.y);
@@ -288,23 +307,25 @@ export class Tower {
         break;
       }
       case "mortar": {
-        const dist = Math.hypot(target.x - this.x, target.y - this.y);
-        const travel = dist / SHELL_SPEED;
-        const spd = target.speed;
-        const tx = target.x + Math.cos(target.angle) * spd * travel;
-        const ty = target.y + Math.sin(target.angle) * spd * travel;
-        const d2 = Math.hypot(tx - this.x, ty - this.y);
-        ctx.shells.push({
-          sx: this.x,
-          sy: this.y,
-          tx,
-          ty,
-          t: 0,
-          dur: Math.max(0.35, d2 / SHELL_SPEED),
-          dmg: st.dmg,
-          splash: (st.splash ?? 1) * this.grid.spacing,
-          color: this.def.color,
-        });
+        for (const target of targets) {
+          const dist = Math.hypot(target.x - this.x, target.y - this.y);
+          const travel = dist / SHELL_SPEED;
+          const spd = target.speed;
+          const tx = target.x + Math.cos(target.angle) * spd * travel;
+          const ty = target.y + Math.sin(target.angle) * spd * travel;
+          const d2 = Math.hypot(tx - this.x, ty - this.y);
+          ctx.shells.push({
+            sx: this.x,
+            sy: this.y,
+            tx,
+            ty,
+            t: 0,
+            dur: Math.max(0.35, d2 / SHELL_SPEED),
+            dmg: st.dmg,
+            splash: (st.splash ?? 1) * this.grid.spacing,
+            color: this.def.color,
+          });
+        }
         ctx.fx.burst(tipX, tipY, { count: 5, color: this.def.color, speed: 130, life: 0.3, size: 2.5, dir: this.angle, spread: 0.9 });
         ctx.sfx("mortar");
         break;

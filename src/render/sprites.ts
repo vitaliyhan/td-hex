@@ -9,16 +9,16 @@ export function drawCore(ctx: CanvasRenderingContext2D, x: number, y: number, si
   const comp = ctx.globalCompositeOperation;
   ctx.globalCompositeOperation = "lighter";
   const pulse = 0.75 + Math.sin(time * 2.2) * 0.15;
-  drawGlow(ctx, "#34e7ff", x, y, size * 2.6 * pulse, 0.55);
+  drawGlow(ctx, "#00ff41", x, y, size * 2.6 * pulse, 0.55);
   ctx.globalCompositeOperation = comp;
 
   ctx.lineWidth = 2;
-  ctx.strokeStyle = "rgba(120,230,255,0.25)";
+  ctx.strokeStyle = "rgba(120,255,160,0.25)";
   ctx.beginPath();
   hexPath(ctx as unknown as CanvasRenderingContext2D, x, y, size * 1.15);
   ctx.stroke();
 
-  ctx.strokeStyle = "#9ff0ff";
+  ctx.strokeStyle = "#c9ffd6";
   ctx.lineWidth = 2.2;
   ctx.beginPath();
   hexPath(ctx as unknown as CanvasRenderingContext2D, x, y, size * 0.82);
@@ -27,7 +27,7 @@ export function drawCore(ctx: CanvasRenderingContext2D, x: number, y: number, si
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(time * 0.7);
-  ctx.strokeStyle = "rgba(52,231,255,0.9)";
+  ctx.strokeStyle = "rgba(0,255,65,0.9)";
   ctx.lineWidth = 1.6;
   for (let i = 0; i < 3; i++) {
     const a0 = (i / 3) * TAU;
@@ -46,13 +46,13 @@ export function drawCore(ctx: CanvasRenderingContext2D, x: number, y: number, si
 export function drawPortal(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, time: number): void {
   const comp = ctx.globalCompositeOperation;
   ctx.globalCompositeOperation = "lighter";
-  drawGlow(ctx, "#ff3df2", x, y, size * 1.8 * (0.8 + Math.sin(time * 3) * 0.12), 0.45);
+  drawGlow(ctx, "#ff2b2b", x, y, size * 1.8 * (0.8 + Math.sin(time * 3) * 0.12), 0.45);
   ctx.globalCompositeOperation = comp;
 
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(time * 1.4);
-  ctx.strokeStyle = "rgba(255,120,245,0.9)";
+  ctx.strokeStyle = "rgba(255,110,110,0.9)";
   ctx.lineWidth = 2;
   for (let i = 0; i < 3; i++) {
     const a0 = (i / 3) * TAU;
@@ -61,7 +61,7 @@ export function drawPortal(ctx: CanvasRenderingContext2D, x: number, y: number, 
     ctx.stroke();
   }
   ctx.rotate(-time * 2.6);
-  ctx.strokeStyle = "rgba(255,61,242,0.7)";
+  ctx.strokeStyle = "rgba(255,43,43,0.7)";
   ctx.beginPath();
   ctx.arc(0, 0, size * 0.38, 0.4, 2.4);
   ctx.stroke();
@@ -101,7 +101,7 @@ export function drawTower(ctx: CanvasRenderingContext2D, t: Tower, size: number)
     const ex = t.x + Math.cos(t.angle) * t.beamLen;
     const ey = t.y + Math.sin(t.angle) * t.beamLen;
     ctx.globalCompositeOperation = "lighter";
-    ctx.strokeStyle = "#9fe8ff";
+    ctx.strokeStyle = "#b8ffd0";
     ctx.globalAlpha = 0.5;
     ctx.lineWidth = w * 3.4;
     ctx.beginPath();
@@ -143,22 +143,53 @@ export function drawTower(ctx: CanvasRenderingContext2D, t: Tower, size: number)
   ctx.fillStyle = color;
   ctx.lineWidth = 2.4;
 
-  switch (t.kind) {
-    case "lance": {
-      ctx.rotate(t.angle);
+  /** draw one barrel per gun, fanned parallel around the facing */
+  const barrels = (n: number, len: number, spread: number): void => {
+    ctx.rotate(t.angle);
+    ctx.lineWidth = 2;
+    for (let i = 0; i < n; i++) {
+      const off = n === 1 ? 0 : (i - (n - 1) / 2) * spread;
       ctx.beginPath();
-      ctx.moveTo(-size * 0.2, 0);
-      ctx.lineTo(size * 0.55, 0);
+      ctx.moveTo(-size * 0.18, off);
+      ctx.lineTo(size * len, off);
       ctx.stroke();
       ctx.beginPath();
-      ctx.arc(size * 0.55, 0, 2.6, 0, Math.PI * 2);
+      ctx.arc(size * len, off, 2.2, 0, Math.PI * 2);
       ctx.fill();
+    }
+    ctx.rotate(-t.angle);
+  };
+
+  switch (t.kind) {
+    case "lance": {
+      barrels(Math.min(6, t.gunCount), 0.55, 3.4);
       ctx.beginPath();
       ctx.moveTo(-size * 0.22, -size * 0.18);
       ctx.lineTo(-size * 0.34, 0);
       ctx.lineTo(-size * 0.22, size * 0.18);
       ctx.closePath();
       ctx.fill();
+      break;
+    }
+    case "sentinel": {
+      // long sniper rails with a scope block
+      barrels(Math.min(6, t.gunCount), 0.72, 4.5);
+      ctx.rotate(t.angle);
+      ctx.lineWidth = 1.6;
+      ctx.strokeRect(size * 0.08, -size * 0.14, size * 0.2, size * 0.28);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(size * 0.72, 0, 2.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.rotate(-t.angle);
+      break;
+    }
+    case "flak": {
+      barrels(Math.min(6, t.gunCount), 0.4, 3.8);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.26, 0, Math.PI * 2);
+      ctx.stroke();
       break;
     }
     case "cryo": {
@@ -182,12 +213,8 @@ export function drawTower(ctx: CanvasRenderingContext2D, t: Tower, size: number)
       break;
     }
     case "mortar": {
-      ctx.rotate(t.angle);
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.1, 0);
-      ctx.lineTo(size * 0.42, 0);
-      ctx.stroke();
+      barrels(Math.min(6, t.gunCount), 0.42, 3.6);
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(0, 0, size * 0.2, 0, Math.PI * 2);
       ctx.stroke();
@@ -352,7 +379,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, time: number)
 
   // slowed marker
   if (e.slowFactor > 0) {
-    ctx.fillStyle = "#9fd8ff";
+    ctx.fillStyle = "#c9ffd6";
     ctx.beginPath();
     ctx.arc(e.x, e.y - r - 8, 2.2, 0, Math.PI * 2);
     ctx.fill();
@@ -366,7 +393,7 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, time: number)
     ctx.fillStyle = "rgba(0,0,0,0.55)";
     ctx.fillRect(x - 1, y - 1, w + 2, 5);
     const frac = e.hp / e.maxHp;
-    ctx.fillStyle = frac > 0.5 ? "#62ff8f" : frac > 0.25 ? "#ffb547" : "#ff4d5e";
+    ctx.fillStyle = frac > 0.5 ? "#00ff41" : frac > 0.25 ? "#8aff00" : "#ff2b2b";
     ctx.fillRect(x, y, w * frac, 3);
   }
 }

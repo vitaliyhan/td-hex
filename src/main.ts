@@ -31,7 +31,7 @@ canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 window.addEventListener("keydown", (e) => {
   if (e.repeat) return;
   const k = e.key;
-  if (k >= "1" && k <= "5") {
+  if (k >= "1" && k <= String(TOWER_ORDER.length)) {
     const kind = TOWER_ORDER[+k - 1];
     if (kind && game.status === "playing") game.setPlacing(game.placing === kind ? null : kind);
   } else if (k === "Escape") {

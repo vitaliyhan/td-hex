@@ -10,6 +10,10 @@ export class Renderer {
   private ctx: CanvasRenderingContext2D;
   private dpr = 1;
   private view = { s: 1, ox: 0, oy: 0 };
+  /** falling code-rain columns (screen space) */
+  private rain: Array<{ x: number; chars: string[]; speed: number; off: number; len: number }> = [];
+  private rainW = 0;
+  private static GLYPHS = "アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789";
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -59,11 +63,13 @@ export class Renderer {
 
     // ── background ──
     const bg = ctx.createRadialGradient(W / 2, H / 2, 60, W / 2, H / 2, Math.max(W, H) * 0.72);
-    bg.addColorStop(0, "#0a1626");
-    bg.addColorStop(0.55, "#060b16");
-    bg.addColorStop(1, "#03050a");
+    bg.addColorStop(0, "#03170c");
+    bg.addColorStop(0.55, "#020a05");
+    bg.addColorStop(1, "#010301");
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
+
+    this.drawRain(W, H, t);
 
     // screen shake (in world view space)
     let sx = 0;
@@ -84,7 +90,7 @@ export class Renderer {
         if (grid.occupied.has(key) || grid.walls.has(key)) continue;
         const c = grid.center(col, row);
         const pulse = 0.05 + 0.035 * Math.sin(t * 1.3 - hexDistance({ col, row }, grid.core) * 0.55);
-        ctx.strokeStyle = `rgba(90,200,255,${pulse})`;
+        ctx.strokeStyle = `rgba(0,255,65,${pulse})`;
         ctx.beginPath();
         hexPath(ctx, c.x, c.y, grid.size - 1.5);
         ctx.stroke();
@@ -96,22 +102,22 @@ export class Renderer {
       const cell = parseKey(key);
       const c = grid.center(cell.col, cell.row);
       ctx.globalCompositeOperation = "lighter";
-      drawGlow(ctx, "#3f6f9e", c.x, c.y, grid.size * 1.1, 0.12);
+      drawGlow(ctx, "#1e7a3c", c.x, c.y, grid.size * 1.1, 0.12);
       ctx.globalCompositeOperation = "source-over";
-      ctx.fillStyle = "rgba(18,32,52,0.96)";
-      ctx.strokeStyle = "rgba(140,200,245,0.55)";
+      ctx.fillStyle = "rgba(6,24,12,0.96)";
+      ctx.strokeStyle = "rgba(140,255,170,0.55)";
       ctx.lineWidth = 2;
       ctx.beginPath();
       hexPath(ctx, c.x, c.y, grid.size - 1.5);
       ctx.fill();
       ctx.stroke();
-      ctx.strokeStyle = "rgba(140,200,245,0.22)";
+      ctx.strokeStyle = "rgba(140,255,170,0.22)";
       ctx.lineWidth = 1;
       ctx.beginPath();
       hexPath(ctx, c.x, c.y, grid.size * 0.66);
       ctx.stroke();
       // hazard corner marks
-      ctx.strokeStyle = "rgba(255,181,71,0.5)";
+      ctx.strokeStyle = "rgba(255,43,43,0.45)";
       ctx.lineWidth = 1.4;
       for (let i = 0; i < 3; i++) {
         const a = (i / 3) * Math.PI * 2 + Math.PI / 6;
@@ -131,7 +137,7 @@ export class Renderer {
     const ringPhase = (t * 0.55) % 1;
     ctx.globalCompositeOperation = "lighter";
     ctx.globalAlpha = 1 - ringPhase;
-    ctx.strokeStyle = "rgba(52,231,255,0.30)";
+    ctx.strokeStyle = "rgba(0,255,65,0.30)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(coreC.x, coreC.y, grid.spacing * (0.8 + ringPhase * 2.2), 0, Math.PI * 2);
@@ -144,7 +150,7 @@ export class Renderer {
       const cells = tracePath(grid.spawn, grid, game.field);
       ctx.setLineDash([5, 9]);
       ctx.lineDashOffset = -t * 46;
-      ctx.strokeStyle = "rgba(110,215,255,0.16)";
+      ctx.strokeStyle = "rgba(0,255,65,0.16)";
       ctx.lineWidth = 2.4;
       ctx.beginPath();
       for (let i = 0; i < cells.length; i++) {
@@ -257,5 +263,34 @@ export class Renderer {
 
     // ── fx on top ──
     game.fx.draw(ctx);
+  }
+
+  /** subtle Matrix code rain behind everything (screen space) */
+  private drawRain(W: number, H: number, t: number): void {
+    const { ctx } = this;
+    if (W !== this.rainW) {
+      this.rainW = W;
+      const GL = Renderer.GLYPHS;
+      this.rain = Array.from({ length: Math.ceil(W / 24) }, (_, i) => ({
+        x: i * 24 + 6,
+        chars: Array.from({ length: 16 }, () => GL[(Math.random() * GL.length) | 0]),
+        speed: 40 + Math.random() * 130,
+        off: Math.random() * 4000,
+        len: 6 + ((Math.random() * 10) | 0),
+      }));
+    }
+    ctx.font = "13px monospace";
+    ctx.textAlign = "center";
+    for (const c of this.rain) {
+      const period = H + 400;
+      const head = ((t * c.speed + c.off) % period) - 200;
+      for (let i = 0; i < c.len; i++) {
+        const y = head - i * 15;
+        if (y < -15 || y > H) continue;
+        const a = i === 0 ? 0.5 : 0.22 * (1 - i / c.len);
+        ctx.fillStyle = i === 0 ? `rgba(190,255,210,${a})` : `rgba(0,255,65,${a})`;
+        ctx.fillText(c.chars[(i + ((t * 4) | 0)) % c.chars.length], c.x, y);
+      }
+    }
   }
 }

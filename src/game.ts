@@ -320,6 +320,16 @@ export class Game {
     this.audio.sfx("place");
   }
 
+  /** cheat-button amount: starts at 100 and grows by 1 per click */
+  moneyClicks = 0;
+  get nextMoney(): number {
+    return 100 + this.moneyClicks;
+  }
+  cheatMoney(): void {
+    this.addMoney(this.nextMoney);
+    this.moneyClicks++;
+  }
+
   /** dev hotkey (G) */
   devAddGold(amount: number): void {
     this.addMoney(amount);

@@ -1,17 +1,19 @@
 import type { EnemyDef, EnemyKind, ModuleCat, TowerDef, TowerKind, Wave } from "./types";
 
 export const PALETTE = {
-  lance: "#34e7ff",
-  cryo: "#6fb7ff",
-  mortar: "#ffb547",
-  arc: "#ff3df2",
-  laser: "#dff3ff",
-  gold: "#ffb547",
-  red: "#ff4d5e",
-  green: "#62ff8f",
-  wraith: "#b46bff",
-  core: "#34e7ff",
-  spawn: "#ff3df2",
+  lance: "#00ff41",
+  cryo: "#5affd0",
+  mortar: "#baff69",
+  arc: "#eaffdc",
+  laser: "#f2fff2",
+  sentinel: "#ffffff",
+  flak: "#7dff8f",
+  gold: "#8aff00",
+  red: "#ff2b2b",
+  green: "#00ff41",
+  wraith: "#d0ffe6",
+  core: "#00ff41",
+  spawn: "#ff2b2b",
 };
 
 const B_COLS = 15;
@@ -111,20 +113,44 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
       { dmg: 16, range: 0, rate: 10, width: 7, beamDur: 1.1, cool: 1.0 },
     ],
   },
+  sentinel: {
+    name: "SENTINEL",
+    color: PALETTE.sentinel,
+    cost: 140,
+    upgradeCosts: [170, 240],
+    desc: "Sniper shot. Extreme range, heavy single hit. Hits flyers.",
+    levels: [
+      { dmg: 30, range: 5.2, rate: 0.55 },
+      { dmg: 52, range: 5.6, rate: 0.6 },
+      { dmg: 88, range: 6.0, rate: 0.65 },
+    ],
+  },
+  flak: {
+    name: "FLAK",
+    color: PALETTE.flak,
+    cost: 120,
+    upgradeCosts: [150, 210],
+    desc: "Rapid burst. Hits up to 3 targets at once.",
+    levels: [
+      { dmg: 6, range: 2.0, rate: 3.5, multi: 3 },
+      { dmg: 11, range: 2.2, rate: 4.0, multi: 4 },
+      { dmg: 18, range: 2.4, rate: 4.5, multi: 5 },
+    ],
+  },
 };
 
-/** base costs of the three per-tower module lines; tier n costs base * n (uncapped) */
-export const MODULE_BASE: Record<ModuleCat, number> = { pow: 60, rate: 55, rng: 50 };
+/** base costs of the per-tower module lines; tier n costs base * n (uncapped) */
+export const MODULE_BASE: Record<ModuleCat, number> = { pow: 60, rate: 55, rng: 50, gun: 80 };
 
-export const TOWER_ORDER: TowerKind[] = ["lance", "cryo", "mortar", "arc", "laser"];
+export const TOWER_ORDER: TowerKind[] = ["lance", "cryo", "mortar", "arc", "laser", "sentinel", "flak"];
 
 export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
-  scout: { hp: 32, speed: 1.6, bounty: 6, armor: 0, radius: 0.34, color: "#34e7ff", leakDamage: 1, name: "Scout" },
-  runner: { hp: 24, speed: 2.7, bounty: 5, armor: 0, radius: 0.28, color: "#62ff8f", leakDamage: 1, name: "Runner" },
-  swarm: { hp: 13, speed: 2.0, bounty: 2, armor: 0, radius: 0.2, color: "#ff8a3d", leakDamage: 1, name: "Swarm" },
-  brute: { hp: 190, speed: 0.85, bounty: 22, armor: 3, radius: 0.46, color: "#ff4d5e", leakDamage: 2, name: "Brute" },
-  wraith: { hp: 55, speed: 1.25, bounty: 14, armor: 1, flying: true, radius: 0.32, color: "#b46bff", leakDamage: 1, name: "Wraith" },
-  boss: { hp: 1250, speed: 0.72, bounty: 160, armor: 6, boss: true, slowResist: 0.5, radius: 0.62, color: "#ff3df2", leakDamage: 5, name: "BOSS" },
+  scout: { hp: 32, speed: 1.6, bounty: 6, armor: 0, radius: 0.34, color: "#00ff41", leakDamage: 1, name: "Scout" },
+  runner: { hp: 24, speed: 2.7, bounty: 5, armor: 0, radius: 0.28, color: "#7dff5e", leakDamage: 1, name: "Runner" },
+  swarm: { hp: 13, speed: 2.0, bounty: 2, armor: 0, radius: 0.2, color: "#c9ff9e", leakDamage: 1, name: "Swarm" },
+  brute: { hp: 190, speed: 0.85, bounty: 22, armor: 3, radius: 0.46, color: "#ff3131", leakDamage: 2, name: "Brute" },
+  wraith: { hp: 55, speed: 1.25, bounty: 14, armor: 1, flying: true, radius: 0.32, color: "#d0ffe6", leakDamage: 1, name: "Wraith" },
+  boss: { hp: 1250, speed: 0.72, bounty: 160, armor: 6, boss: true, slowResist: 0.5, radius: 0.62, color: "#ff1f1f", leakDamage: 5, name: "BOSS" },
 };
 
 /** HP multiplier for a given wave number */
