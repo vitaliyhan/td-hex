@@ -234,7 +234,7 @@ export class Game {
     const t = this.selected;
     if (!t) return;
     const c = t.moduleCost(cat);
-    if (c === null || this.gold < c) {
+    if (this.gold < c) {
       this.audio.sfx("error");
       return;
     }

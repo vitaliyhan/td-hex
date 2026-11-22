@@ -1,4 +1,4 @@
-import { ENEMY_DEFS, MODULE_MAX, TOWER_DEFS, TOWER_ORDER, getWave } from "./config";
+import { ENEMY_DEFS, TOWER_DEFS, TOWER_ORDER, getWave } from "./config";
 import type { Game } from "./game";
 import type { TowerKind } from "./types";
 
@@ -226,9 +226,8 @@ export class UI {
     for (const [cat, btn] of [["pow", this.el.spPow], ["rate", this.el.spRate], ["rng", this.el.spRng]] as const) {
       const tier = t.moduleTier(cat);
       const cost = t.moduleCost(cat);
-      const pips = "▰".repeat(tier) + "▯".repeat(MODULE_MAX - tier);
-      btn.textContent = cost === null ? `${cat.toUpperCase()} ${pips} MAX` : `${cat.toUpperCase()} ${pips} ${cost}g`;
-      btn.disabled = cost === null || g.gold < cost;
+      btn.textContent = tier === 0 ? `${cat.toUpperCase()}  ${cost}g` : `${cat.toUpperCase()} +${tier}  ${cost}g`;
+      btn.disabled = g.gold < cost;
     }
 
     const cost = t.upgradeCost;

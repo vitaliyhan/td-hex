@@ -113,9 +113,8 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
   },
 };
 
-/** base costs of the three per-tower module lines; tier n costs base * n */
+/** base costs of the three per-tower module lines; tier n costs base * n (uncapped) */
 export const MODULE_BASE: Record<ModuleCat, number> = { pow: 60, rate: 55, rng: 50 };
-export const MODULE_MAX = 3;
 
 export const TOWER_ORDER: TowerKind[] = ["lance", "cryo", "mortar", "arc", "laser"];
 

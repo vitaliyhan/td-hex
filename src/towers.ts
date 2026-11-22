@@ -1,4 +1,4 @@
-import { MODULE_BASE, MODULE_MAX, TOWER_DEFS } from "./config";
+import { MODULE_BASE, TOWER_DEFS } from "./config";
 import type { Grid } from "./grid";
 import type { Fx } from "./fx";
 import type { Shell } from "./projectiles";
@@ -85,9 +85,9 @@ export class Tower {
     return cat === "pow" ? this.powT : cat === "rate" ? this.rateT : this.rngT;
   }
 
-  moduleCost(cat: ModuleCat): number | null {
-    const t = this.moduleTier(cat);
-    return t >= MODULE_MAX ? null : MODULE_BASE[cat] * (t + 1);
+  /** module tiers are uncapped; tier n costs base * (n+1) */
+  moduleCost(cat: ModuleCat): number {
+    return MODULE_BASE[cat] * (this.moduleTier(cat) + 1);
   }
 
   addModule(cat: ModuleCat): void {
